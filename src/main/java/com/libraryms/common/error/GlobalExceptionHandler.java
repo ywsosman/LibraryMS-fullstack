@@ -84,9 +84,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
 
-    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    @ExceptionHandler(org.springframework.dao.OptimisticLockingFailureException.class)
     public ResponseEntity<ApiErrorResponse> handleOptimisticLockingFailureException(
-            ObjectOptimisticLockingFailureException ex, HttpServletRequest request) {
+            org.springframework.dao.OptimisticLockingFailureException ex, HttpServletRequest request) {
         log.warn("Optimistic locking conflict on {}: {}", request.getRequestURI(), ex.getMessage());
         ApiErrorResponse body = ApiErrorResponse.of(
                 ErrorCode.OPTIMISTIC_LOCK_FAILURE,
