@@ -36,6 +36,7 @@ public class MemberService {
     }
 
     @Transactional
+    @com.libraryms.audit.Audited(entityType = "MEMBER", operation = "CREATE")
     public MemberResponse createMember(CreateMemberRequest request) {
         String email = request.email().trim().toLowerCase();
         if (memberRepository.existsByEmailIgnoreCaseAndDeletedAtIsNull(email)) {
@@ -82,6 +83,7 @@ public class MemberService {
     }
 
     @Transactional
+    @com.libraryms.audit.Audited(entityType = "MEMBER", operation = "UPDATE")
     public MemberResponse updateMember(Long id, UpdateMemberRequest request) {
         Member member = memberRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Member", id));
@@ -108,6 +110,7 @@ public class MemberService {
     }
 
     @Transactional
+    @com.libraryms.audit.Audited(entityType = "MEMBER", operation = "DELETE")
     public void deleteMember(Long id) {
         Member member = memberRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Member", id));

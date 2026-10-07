@@ -23,6 +23,7 @@ public class AuthorService {
     }
 
     @Transactional
+    @com.libraryms.audit.Audited(entityType = "AUTHOR", operation = "CREATE")
     public AuthorResponse createAuthor(CreateAuthorRequest request) {
         Author author = authorMapper.toEntity(request);
         Author saved = authorRepository.save(author);
@@ -38,7 +39,7 @@ public class AuthorService {
 
     @Transactional(readOnly = true)
     public Page<AuthorResponse> listAuthors(String name, Pageable pageable) {
-        Specification<Author> spec = Specification.where(null);
+        Specification<Author> spec = (root, query, cb) -> cb.conjunction();
         if (name != null && !name.isBlank()) {
             spec = spec.and((root, query, cb) ->
                     cb.like(cb.lower(root.get("name")), "%" + name.trim().toLowerCase() + "%"));
@@ -47,6 +48,7 @@ public class AuthorService {
     }
 
     @Transactional
+    @com.libraryms.audit.Audited(entityType = "AUTHOR", operation = "UPDATE")
     public AuthorResponse updateAuthor(Long id, UpdateAuthorRequest request) {
         Author author = authorRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Author", id));
@@ -55,6 +57,7 @@ public class AuthorService {
     }
 
     @Transactional
+    @com.libraryms.audit.Audited(entityType = "AUTHOR", operation = "DELETE")
     public void deleteAuthor(Long id) {
         Author author = authorRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Author", id));

@@ -43,6 +43,7 @@ public class BookService {
     }
 
     @Transactional
+    @com.libraryms.audit.Audited(entityType = "BOOK", operation = "CREATE")
     public BookResponse createBook(CreateBookRequest request) {
         String normalizedIsbn = IsbnValidator.normalizeToIsbn13(request.isbn());
         if (bookRepository.existsByIsbn(normalizedIsbn)) {
@@ -78,7 +79,7 @@ public class BookService {
 
     @Transactional(readOnly = true)
     public Page<BookResponse> listBooks(String title, String author, String isbn, String genre, Pageable pageable) {
-        Specification<Book> spec = Specification.where(null);
+        Specification<Book> spec = (root, query, cb) -> cb.conjunction();
 
         if (title != null && !title.isBlank()) {
             spec = spec.and((root, query, cb) ->
@@ -111,6 +112,7 @@ public class BookService {
     }
 
     @Transactional
+    @com.libraryms.audit.Audited(entityType = "BOOK", operation = "UPDATE")
     public BookResponse updateBook(Long id, UpdateBookRequest request) {
         Book book = bookRepository.findDetailedById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Book", id));
@@ -141,6 +143,7 @@ public class BookService {
     }
 
     @Transactional
+    @com.libraryms.audit.Audited(entityType = "BOOK", operation = "DELETE")
     public void deleteBook(Long id) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Book", id));

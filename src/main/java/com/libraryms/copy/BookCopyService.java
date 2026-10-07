@@ -34,6 +34,7 @@ public class BookCopyService {
     }
 
     @Transactional
+    @com.libraryms.audit.Audited(entityType = "COPY", operation = "CREATE")
     public CopyResponse createCopy(CreateCopyRequest request) {
         String barcode = request.barcode().trim();
         if (copyRepository.existsByBarcode(barcode)) {
@@ -59,7 +60,7 @@ public class BookCopyService {
 
     @Transactional(readOnly = true)
     public Page<CopyResponse> listCopies(Long bookId, String barcode, CopyStatus status, Pageable pageable) {
-        Specification<BookCopy> spec = Specification.where(null);
+        Specification<BookCopy> spec = (root, query, cb) -> cb.conjunction();
 
         if (bookId != null) {
             spec = spec.and((root, query, cb) -> cb.equal(root.get("book").get("id"), bookId));
@@ -76,6 +77,7 @@ public class BookCopyService {
     }
 
     @Transactional
+    @com.libraryms.audit.Audited(entityType = "COPY", operation = "UPDATE_STATUS")
     public CopyResponse updateCopyStatus(Long id, UpdateCopyStatusRequest request) {
         BookCopy copy = copyRepository.findWithBookById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("BookCopy", id));
@@ -89,6 +91,7 @@ public class BookCopyService {
     }
 
     @Transactional
+    @com.libraryms.audit.Audited(entityType = "COPY", operation = "DELETE")
     public void deleteCopy(Long id) {
         BookCopy copy = copyRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("BookCopy", id));

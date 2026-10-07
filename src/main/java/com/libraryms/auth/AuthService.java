@@ -6,6 +6,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.libraryms.audit.AuditService;
 import com.libraryms.auth.dto.AuthResponse;
 import com.libraryms.auth.dto.LoginRequest;
 import com.libraryms.auth.dto.RefreshTokenRequest;
@@ -30,19 +31,22 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenService jwtTokenService;
     private final LoginAttemptLimiter loginAttemptLimiter;
+    private final AuditService auditService;
 
     public AuthService(UserRepository userRepository,
                        RoleRepository roleRepository,
                        RefreshTokenRepository refreshTokenRepository,
                        PasswordEncoder passwordEncoder,
                        JwtTokenService jwtTokenService,
-                       LoginAttemptLimiter loginAttemptLimiter) {
+                       LoginAttemptLimiter loginAttemptLimiter,
+                       AuditService auditService) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.refreshTokenRepository = refreshTokenRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenService = jwtTokenService;
         this.loginAttemptLimiter = loginAttemptLimiter;
+        this.auditService = auditService;
     }
 
     public record RegistrationResult(AuthResponse authResponse, Long userId) {}
@@ -83,11 +87,13 @@ public class AuthService {
 
         if (user == null || !passwordEncoder.matches(request.password(), user.getPasswordHash()) || !user.isEnabled()) {
             loginAttemptLimiter.recordFailure(usernameKey);
+            auditService.logAutonomousEvent(null, usernameKey, "USER", null, "LOGIN_FAILED", "Failed login credentials");
             // Generic message for both unknown user and wrong password to prevent username enumeration
             throw new UnauthorizedException("Invalid username or password");
         }
 
         loginAttemptLimiter.recordSuccess(usernameKey);
+        auditService.logAutonomousEvent(user.getId(), user.getUsername(), "USER", user.getId(), "LOGIN", "Login successful");
         return issueTokens(user);
     }
 

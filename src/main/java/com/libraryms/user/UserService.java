@@ -49,7 +49,7 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public Page<UserResponse> listUsers(String username, String email, Pageable pageable) {
-        Specification<User> spec = Specification.where(null);
+        Specification<User> spec = (root, query, cb) -> cb.conjunction();
         if (username != null && !username.isBlank()) {
             spec = spec.and((root, query, cb) ->
                     cb.like(cb.lower(root.get("username")), "%" + username.trim().toLowerCase() + "%"));
@@ -62,6 +62,7 @@ public class UserService {
     }
 
     @Transactional
+    @com.libraryms.audit.Audited(entityType = "USER", operation = "UPDATE")
     public UserResponse updateUser(Long id, UpdateUserRequest request) {
         User user = userRepository.findWithRolesById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", id));
@@ -90,6 +91,7 @@ public class UserService {
     }
 
     @Transactional
+    @com.libraryms.audit.Audited(entityType = "USER", operation = "CHANGE_PASSWORD")
     public void changePassword(Long userId, ChangePasswordRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", userId));
@@ -107,6 +109,7 @@ public class UserService {
     }
 
     @Transactional
+    @com.libraryms.audit.Audited(entityType = "USER", operation = "DELETE")
     public void deleteUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", userId));
@@ -116,6 +119,7 @@ public class UserService {
     }
 
     @Transactional
+    @com.libraryms.audit.Audited(entityType = "USER", operation = "LINK_MEMBER")
     public UserResponse linkMember(Long userId, Long memberId) {
         User user = userRepository.findWithRolesById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", userId));
@@ -131,6 +135,7 @@ public class UserService {
     }
 
     @Transactional
+    @com.libraryms.audit.Audited(entityType = "USER", operation = "UNLINK_MEMBER")
     public UserResponse unlinkMember(Long userId) {
         User user = userRepository.findWithRolesById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", userId));

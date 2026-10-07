@@ -52,6 +52,7 @@ public class LoanService {
     }
 
     @Transactional
+    @com.libraryms.audit.Audited(entityType = "LOAN", operation = "BORROW")
     public LoanResponse createLoan(CreateLoanRequest request, CurrentUserPrincipal principal) {
         final Long effectiveMemberId;
         if (request.memberId() == null) {
@@ -92,6 +93,7 @@ public class LoanService {
     }
 
     @Transactional
+    @com.libraryms.audit.Audited(entityType = "LOAN", operation = "RETURN")
     public LoanResponse returnLoan(Long id) {
         Loan loan = loanRepository.findDetailedById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Loan", id));

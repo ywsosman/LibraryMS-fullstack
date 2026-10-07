@@ -39,6 +39,7 @@ class AuthServiceTest {
     private PasswordEncoder passwordEncoder;
     private JwtTokenService jwtTokenService;
     private LoginAttemptLimiter loginAttemptLimiter;
+    private com.libraryms.audit.AuditService auditService;
     private AuthService authService;
 
     @BeforeEach
@@ -49,6 +50,7 @@ class AuthServiceTest {
         passwordEncoder = mock(PasswordEncoder.class);
         jwtTokenService = mock(JwtTokenService.class);
         loginAttemptLimiter = mock(LoginAttemptLimiter.class);
+        auditService = mock(com.libraryms.audit.AuditService.class);
 
         authService = new AuthService(
                 userRepository,
@@ -56,7 +58,8 @@ class AuthServiceTest {
                 refreshTokenRepository,
                 passwordEncoder,
                 jwtTokenService,
-                loginAttemptLimiter
+                loginAttemptLimiter,
+                auditService
         );
     }
 
