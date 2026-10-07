@@ -88,4 +88,18 @@ public class UserController {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{id}/member/{memberId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<UserResponse> linkMember(
+            @PathVariable Long id,
+            @PathVariable Long memberId) {
+        return ResponseEntity.ok(userService.linkMember(id, memberId));
+    }
+
+    @DeleteMapping("/{id}/member")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<UserResponse> unlinkMember(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.unlinkMember(id));
+    }
 }

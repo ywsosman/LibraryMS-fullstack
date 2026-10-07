@@ -32,6 +32,12 @@ public class Author extends BaseEntity {
         this.name = name;
     }
 
+    public Author(String name, String bio, LocalDate birthDate) {
+        this.name = name;
+        this.bio = bio;
+        this.birthDate = birthDate;
+    }
+
     @Override
     public String toString() {
         return "Author{id=" + getId() + ", name='" + name + "'}";

@@ -13,6 +13,8 @@ import com.libraryms.auth.RefreshTokenRepository;
 import com.libraryms.common.error.BadRequestException;
 import com.libraryms.common.error.ConflictException;
 import com.libraryms.common.error.ResourceNotFoundException;
+import com.libraryms.member.Member;
+import com.libraryms.member.MemberRepository;
 import com.libraryms.user.dto.ChangePasswordRequest;
 import com.libraryms.user.dto.UpdateUserRequest;
 import com.libraryms.user.dto.UserResponse;
@@ -21,15 +23,18 @@ import com.libraryms.user.dto.UserResponse;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final MemberRepository memberRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
 
     public UserService(UserRepository userRepository,
+                       MemberRepository memberRepository,
                        RefreshTokenRepository refreshTokenRepository,
                        PasswordEncoder passwordEncoder,
                        UserMapper userMapper) {
         this.userRepository = userRepository;
+        this.memberRepository = memberRepository;
         this.refreshTokenRepository = refreshTokenRepository;
         this.passwordEncoder = passwordEncoder;
         this.userMapper = userMapper;
@@ -108,5 +113,28 @@ public class UserService {
 
         refreshTokenRepository.revokeAllForUser(userId, Instant.now());
         userRepository.delete(user);
+    }
+
+    @Transactional
+    public UserResponse linkMember(Long userId, Long memberId) {
+        User user = userRepository.findWithRolesById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", userId));
+        Member member = memberRepository.findByIdAndDeletedAtIsNull(memberId)
+                .orElseThrow(() -> new ResourceNotFoundException("Member", memberId));
+
+        if (userRepository.existsByMemberIdAndIdNot(memberId, userId)) {
+            throw new ConflictException("Member " + memberId + " is already linked to another user");
+        }
+
+        user.setMember(member);
+        return userMapper.toResponse(user);
+    }
+
+    @Transactional
+    public UserResponse unlinkMember(Long userId) {
+        User user = userRepository.findWithRolesById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", userId));
+        user.setMember(null);
+        return userMapper.toResponse(user);
     }
 }
