@@ -51,8 +51,7 @@ class Regression11InvalidRequestBodyIT {
     @BeforeEach
     void setUp() {
         Role userRole = roleRepository.findByName(RoleName.ROLE_USER).orElseThrow();
-        User user = userRepository.findByMemberId(null)
-                .filter(u -> "reg11_user".equalsIgnoreCase(u.getUsername()))
+        User user = userRepository.findWithRolesByUsernameIgnoreCase("reg11_user")
                 .orElseGet(() -> {
                     User u = new User(
                             "reg11_user",

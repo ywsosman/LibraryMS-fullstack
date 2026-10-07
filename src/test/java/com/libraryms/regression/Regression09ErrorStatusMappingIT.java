@@ -50,8 +50,7 @@ class Regression09ErrorStatusMappingIT {
     @BeforeEach
     void setUp() {
         Role userRole = roleRepository.findByName(RoleName.ROLE_USER).orElseThrow();
-        User user = userRepository.findByMemberId(null)
-                .filter(u -> "reg9_user".equalsIgnoreCase(u.getUsername()))
+        User user = userRepository.findWithRolesByUsernameIgnoreCase("reg9_user")
                 .orElseGet(() -> {
                     User u = new User(
                             "reg9_user",
