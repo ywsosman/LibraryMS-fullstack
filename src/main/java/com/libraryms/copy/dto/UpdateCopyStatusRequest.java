@@ -1,6 +1,6 @@
 package com.libraryms.copy.dto;
 
-import com.libraryms.copy.CopyStatus;
+import com.libraryms.copy.entity.CopyStatus;
 
 import jakarta.validation.constraints.NotNull;
 

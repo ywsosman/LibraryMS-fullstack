@@ -1,5 +1,7 @@
 package com.libraryms.book.dto;
 
+import com.libraryms.book.entity.Book;
+
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Set;

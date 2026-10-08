@@ -1,5 +1,7 @@
 package com.libraryms.user.dto;
 
+import com.libraryms.user.entity.User;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 

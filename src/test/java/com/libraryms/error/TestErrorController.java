@@ -1,5 +1,8 @@
 package com.libraryms.error;
 
+import com.libraryms.copy.entity.BookCopy;
+import com.libraryms.user.entity.Role;
+
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;

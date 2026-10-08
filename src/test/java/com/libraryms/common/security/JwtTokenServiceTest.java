@@ -8,9 +8,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.libraryms.user.Role;
-import com.libraryms.user.RoleName;
-import com.libraryms.user.User;
+import com.libraryms.user.entity.Role;
+import com.libraryms.user.entity.RoleName;
+import com.libraryms.user.entity.User;
 
 class JwtTokenServiceTest {
 

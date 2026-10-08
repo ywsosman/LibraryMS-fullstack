@@ -35,6 +35,106 @@ A production-grade, enterprise-ready Library Management System REST API built fr
 
 ---
 
+## 📂 Architecture & Package Organization
+
+The project is structured according to a **Feature-Driven Architecture with Dedicated Subpackages**. Each feature module is self-contained and subdivided into explicit technical layers to enforce strict single-responsibility principles:
+
+```text
+com.libraryms
+├── LibraryApplication.java           # Spring Boot application entry point
+│
+├── auth/                             # Authentication, Registration & Token Management
+│   ├── controller/                   # AuthController (register, login, refresh, logout)
+│   ├── service/                      # AuthService (token issue, rotation), AdminBootstrap (fail-fast seed)
+│   ├── repository/                   # RefreshTokenRepository
+│   ├── entity/                       # RefreshToken (opaque hash entity)
+│   └── dto/                          # AuthResponse, LoginRequest, RegisterRequest, RefreshTokenRequest
+│
+├── user/                             # User Accounts & Role-Based Access Control
+│   ├── controller/                   # UserController (self-service me, admin user management, member links)
+│   ├── service/                      # UserService (credentials, self-delete, role checks)
+│   ├── repository/                   # UserRepository, RoleRepository
+│   ├── entity/                       # User, Role, RoleName (ROLE_USER, ROLE_ADMIN)
+│   ├── mapper/                       # UserMapper (MapStruct)
+│   └── dto/                          # UserResponse, UpdateUserRequest, ChangePasswordRequest
+│
+├── author/                           # Book Authors Domain
+│   ├── controller/                   # AuthorController (CRUD, paginated lookup)
+│   ├── service/                      # AuthorService (business validation, @Audited actions)
+│   ├── repository/                   # AuthorRepository
+│   ├── entity/                       # Author (JPA aggregate)
+│   ├── mapper/                       # AuthorMapper (MapStruct)
+│   └── dto/                          # AuthorResponse, CreateAuthorRequest, UpdateAuthorRequest
+│
+├── book/                             # Catalog Books Domain
+│   ├── controller/                   # BookController (CRUD, multi-field filters)
+│   ├── service/                      # BookService (ISBN normalization, author linkages)
+│   ├── repository/                   # BookRepository
+│   ├── entity/                       # Book (JPA aggregate with @Version)
+│   ├── mapper/                       # BookMapper (MapStruct with AuthorSummary projections)
+│   └── dto/                          # BookResponse, CreateBookRequest, UpdateBookRequest
+│
+├── copy/                             # Physical Book Copies Domain
+│   ├── controller/                   # BookCopyController (barcode tracking, status toggles)
+│   ├── service/                      # BookCopyService (optimistic lock updates, copy lifecycle)
+│   ├── repository/                   # BookCopyRepository
+│   ├── entity/                       # BookCopy, CopyStatus (AVAILABLE, ON_LOAN, LOST)
+│   ├── mapper/                       # BookCopyMapper (MapStruct with BookSummary projections)
+│   └── dto/                          # CopyResponse, CreateCopyRequest, UpdateCopyStatusRequest
+│
+├── member/                           # Library Patrons Domain
+│   ├── controller/                   # MemberController (CRUD, active loan checks)
+│   ├── service/                      # MemberService (soft delete logic, loan status guards)
+│   ├── repository/                   # MemberRepository
+│   ├── entity/                       # Member (JPA aggregate with deleted_at soft-delete timestamp)
+│   ├── mapper/                       # MemberMapper (MapStruct)
+│   ├── security/                     # MemberSecurity (Spring Security SpEL access checks)
+│   └── dto/                          # MemberResponse, CreateMemberRequest, UpdateMemberRequest
+│
+├── loan/                             # Borrowing, Returns & Fine Calculations
+│   ├── controller/                   # LoanController (borrow, return, fine settlements)
+│   ├── service/                      # LoanService (fine policy, concurrent borrow protection)
+│   ├── repository/                   # LoanRepository (partial unique index ux_loans_open_copy)
+│   ├── entity/                       # Loan (JPA aggregate with @Version)
+│   ├── mapper/                       # LoanMapper (MapStruct with MemberSummary & CopySummary)
+│   ├── security/                     # LoanSecurity (user/member ownership verification)
+│   ├── config/                       # LoanProperties (configurable loan durations & daily fines)
+│   └── dto/                          # LoanResponse, CreateLoanRequest, LoanStatusFilter
+│
+├── audit/                            # Transactional & Security Auditing
+│   ├── controller/                   # AuditController (admin audit trail queries)
+│   ├── service/                      # AuditService (transactional and REQUIRES_NEW persistence)
+│   ├── repository/                   # AuditLogRepository
+│   ├── entity/                       # AuditLog (snapshot columns, ON DELETE SET NULL user FK)
+│   ├── mapper/                       # AuditLogMapper (MapStruct)
+│   ├── aspect/                       # @Audited annotation & AuditAspect (ordered inside transaction)
+│   ├── config/                       # AuditConfig (AOP enable)
+│   └── dto/                          # AuditLogResponse
+│
+└── common/                           # Cross-Cutting Infrastructure & Platform Concerns
+    ├── config/                       # ClockConfig, OpenApiConfig (Swagger & JWT security scheme)
+    ├── dto/summary/                  # Cycle-free summary projections (AuthorSummary, BookSummary, CopySummary, MemberSummary)
+    ├── error/                        # Unified error handling (ApiException, ApiErrorResponse, GlobalExceptionHandler)
+    ├── persistence/                  # BaseEntity (Id, @Version, createdAt, updatedAt)
+    ├── security/                     # SecurityConfig, JwtProperties, JwtTokenService, LoginAttemptLimiter, Handlers
+    └── validation/                   # Custom Bean Validation constraints (@ValidIsbn, IsbnValidator)
+```
+
+### 🎯 Purpose of Each Subpackage Layer
+| Subpackage | Role & Architectural Responsibilities |
+|---|---|
+| **`controller/`** | Exposes HTTP REST endpoints under `/api/v1/*`. Handles HTTP verbs, path variables, query pagination, `@Valid` triggers, and `@PreAuthorize` security checks. Never accesses database entities or repositories directly. |
+| **`service/`** | Implements core business logic and transactional boundaries (`@Transactional`). Coordinates repository calls, triggers `@Audited` operations, calculates loan fines, and prevents business rule violations. |
+| **`repository/`** | Spring Data JPA interfaces interfacing directly with PostgreSQL. Encapsulates queries, partial unique index validations, and pessimistic/optimistic concurrency mechanisms. |
+| **`entity/`** | JPA database models mapped directly to PostgreSQL tables. Extends `BaseEntity` for optimistic locking (`@Version`) and automatic timestamp auditing. |
+| **`mapper/`** | Compile-time MapStruct mappers (`ReportingPolicy.ERROR`) ensuring type-safe entity-to-DTO conversions and eliminating circular JSON references. |
+| **`dto/`** | Immutable Java records defining public API request and response contracts. Prevents entity leakage to API consumers. |
+| **`security/`** | Feature-specific authorization helpers and SpEL security expressions (e.g. verifying that a patron only views their own loans/profile). |
+| **`config/`** | Feature-specific configuration properties (e.g., loan durations, daily fine amounts) mapped from Spring Boot properties. |
+| **`aspect/`** | Aspect-Oriented Programming (AOP) interceptors and custom declarative annotations (e.g., `@Audited`). |
+
+---
+
 ## ⚙️ Environment Variables Reference
 
 | Variable | Default | Required in Production | Description |

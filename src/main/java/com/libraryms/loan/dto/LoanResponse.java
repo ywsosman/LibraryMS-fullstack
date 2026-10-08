@@ -1,5 +1,9 @@
 package com.libraryms.loan.dto;
 
+import com.libraryms.loan.entity.Loan;
+import com.libraryms.book.entity.Book;
+import com.libraryms.member.entity.Member;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 

@@ -1,5 +1,7 @@
 package com.libraryms.copy.dto;
 
+import com.libraryms.book.entity.Book;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;

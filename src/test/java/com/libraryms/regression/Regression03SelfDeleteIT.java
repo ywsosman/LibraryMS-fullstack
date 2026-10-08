@@ -1,5 +1,8 @@
 package com.libraryms.regression;
 
+import com.libraryms.user.entity.User;
+import com.libraryms.member.entity.Member;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Map;

@@ -19,7 +19,7 @@ import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.stereotype.Service;
 
-import com.libraryms.user.User;
+import com.libraryms.user.entity.User;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 
 /**

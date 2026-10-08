@@ -1,5 +1,7 @@
 package com.libraryms.auth.dto;
 
+import com.libraryms.auth.entity.RefreshToken;
+
 public record AuthResponse(
         String accessToken,
         String refreshToken,

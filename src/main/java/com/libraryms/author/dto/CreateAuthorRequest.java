@@ -1,5 +1,7 @@
 package com.libraryms.author.dto;
 
+import com.libraryms.author.entity.Author;
+
 import java.time.LocalDate;
 
 import jakarta.validation.constraints.NotBlank;

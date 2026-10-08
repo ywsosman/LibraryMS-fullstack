@@ -1,5 +1,7 @@
 package com.libraryms.user.dto;
 
+import com.libraryms.user.entity.User;
+
 import java.time.Instant;
 import java.util.Set;
 

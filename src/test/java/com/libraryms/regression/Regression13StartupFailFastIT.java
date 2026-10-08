@@ -1,5 +1,7 @@
 package com.libraryms.regression;
 
+import com.libraryms.user.entity.User;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -9,8 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.libraryms.common.security.JwtProperties;
 import com.libraryms.support.IntegrationTest;
-import com.libraryms.user.RoleName;
-import com.libraryms.user.UserRepository;
+import com.libraryms.user.entity.RoleName;
+import com.libraryms.user.repository.UserRepository;
 
 /**
  * Regression Test 13:

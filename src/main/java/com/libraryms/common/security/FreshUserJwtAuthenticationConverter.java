@@ -11,9 +11,9 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 
-import com.libraryms.user.RoleName;
-import com.libraryms.user.User;
-import com.libraryms.user.UserRepository;
+import com.libraryms.user.entity.RoleName;
+import com.libraryms.user.entity.User;
+import com.libraryms.user.repository.UserRepository;
 
 /**
  * Validates JWT access tokens with a fresh database lookup on each request.

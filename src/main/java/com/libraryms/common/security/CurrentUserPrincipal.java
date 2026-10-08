@@ -1,5 +1,7 @@
 package com.libraryms.common.security;
 
+import com.libraryms.user.entity.User;
+
 import java.io.Serializable;
 import java.security.Principal;
 import java.util.Collection;
@@ -8,7 +10,7 @@ import java.util.Set;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.libraryms.user.RoleName;
+import com.libraryms.user.entity.RoleName;
 
 public record CurrentUserPrincipal(
         Long id,

@@ -1,5 +1,7 @@
 package com.libraryms.regression;
 
+import com.libraryms.user.entity.User;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.BeforeEach;

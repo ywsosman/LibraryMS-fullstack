@@ -199,7 +199,7 @@
                                 <rule>
                                     <element>CLASS</element>
                                     <includes>
-                                        <include>com.libraryms.*.*Service</include>
+                                        <include>com.libraryms.**.*Service</include>
                                     </includes>
                                     <limits>
                                         <limit>

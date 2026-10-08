@@ -1,5 +1,7 @@
 package com.libraryms.member.dto;
 
+import com.libraryms.member.entity.Member;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
 

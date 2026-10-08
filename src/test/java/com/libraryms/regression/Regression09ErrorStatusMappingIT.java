@@ -19,11 +19,11 @@ import org.springframework.http.ResponseEntity;
 import com.libraryms.common.error.ApiErrorResponse;
 import com.libraryms.common.security.JwtTokenService;
 import com.libraryms.support.IntegrationTest;
-import com.libraryms.user.Role;
-import com.libraryms.user.RoleName;
-import com.libraryms.user.RoleRepository;
-import com.libraryms.user.User;
-import com.libraryms.user.UserRepository;
+import com.libraryms.user.entity.Role;
+import com.libraryms.user.entity.RoleName;
+import com.libraryms.user.repository.RoleRepository;
+import com.libraryms.user.entity.User;
+import com.libraryms.user.repository.UserRepository;
 
 /**
  * Regression Test 9:

@@ -1,5 +1,7 @@
 package com.libraryms.regression;
 
+import com.libraryms.book.entity.Book;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Instant;
@@ -10,11 +12,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import com.libraryms.audit.AuditLog;
-import com.libraryms.audit.AuditLogRepository;
+import com.libraryms.audit.entity.AuditLog;
+import com.libraryms.audit.repository.AuditLogRepository;
 import com.libraryms.support.IntegrationTest;
-import com.libraryms.user.User;
-import com.libraryms.user.UserRepository;
+import com.libraryms.user.entity.User;
+import com.libraryms.user.repository.UserRepository;
 
 /**
  * Regression Test 6:

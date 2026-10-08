@@ -1,5 +1,10 @@
 package com.libraryms.regression;
 
+import com.libraryms.loan.entity.Loan;
+import com.libraryms.user.entity.User;
+import com.libraryms.book.entity.Book;
+import com.libraryms.member.entity.Member;
+
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.junit.jupiter.api.DisplayName;
