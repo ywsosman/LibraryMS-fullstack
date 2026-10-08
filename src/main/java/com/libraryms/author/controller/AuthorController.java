@@ -58,7 +58,7 @@ public class AuthorController {
     @GetMapping
     public ResponseEntity<Page<AuthorResponse>> listAuthors(
             @RequestParam(required = false) String name,
-            @PageableDefault(size = 20) Pageable pageable) {
+            @PageableDefault(size = 20, sort = "name") Pageable pageable) {
         return ResponseEntity.ok(authorService.listAuthors(name, pageable));
     }
 

@@ -60,7 +60,7 @@ public class BookCopyController {
             @RequestParam(required = false) Long bookId,
             @RequestParam(required = false) String barcode,
             @RequestParam(required = false) CopyStatus status,
-            @PageableDefault(size = 20) Pageable pageable) {
+            @PageableDefault(size = 20, sort = "barcode") Pageable pageable) {
         return ResponseEntity.ok(copyService.listCopies(bookId, barcode, status, pageable));
     }
 

@@ -78,6 +78,8 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                         // Public authentication endpoints (register, login, refresh)
                         .requestMatchers("/api/v1/auth/**").permitAll()
+                        // Public catalog browsing endpoints (GET books, GET authors)
+                        .requestMatchers(HttpMethod.GET, "/api/v1/books", "/api/v1/books/**", "/api/v1/authors", "/api/v1/authors/**").permitAll()
                         // Dispatcher error path
                         .requestMatchers("/error").permitAll()
                         // Pre-flight OPTIONS requests handled by CORS filter

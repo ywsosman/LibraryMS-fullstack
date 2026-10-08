@@ -63,7 +63,7 @@ public class BookController {
     @GetMapping("/{id}/copies")
     public ResponseEntity<Page<CopyResponse>> getBookCopies(
             @PathVariable Long id,
-            @PageableDefault(size = 20) Pageable pageable) {
+            @PageableDefault(size = 20, sort = "barcode") Pageable pageable) {
         bookService.getBookById(id);
         return ResponseEntity.ok(copyService.listCopies(id, null, null, pageable));
     }
@@ -74,7 +74,7 @@ public class BookController {
             @RequestParam(required = false) String author,
             @RequestParam(required = false) String isbn,
             @RequestParam(required = false) String genre,
-            @PageableDefault(size = 20) Pageable pageable) {
+            @PageableDefault(size = 20, sort = "title") Pageable pageable) {
         return ResponseEntity.ok(bookService.listBooks(title, author, isbn, genre, pageable));
     }
 

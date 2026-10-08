@@ -23,6 +23,7 @@ import org.springframework.data.jpa.domain.Specification;
 import com.libraryms.common.error.ConflictException;
 import com.libraryms.common.error.ResourceNotFoundException;
 import com.libraryms.loan.repository.LoanRepository;
+import com.libraryms.member.dto.ActivateMembershipRequest;
 import com.libraryms.member.dto.CreateMemberRequest;
 import com.libraryms.member.dto.MemberResponse;
 import com.libraryms.member.dto.UpdateMemberRequest;
@@ -216,5 +217,50 @@ class MemberServiceTest {
 
         assertThatThrownBy(() -> memberService.deleteMember(1L))
                 .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("activateMembership should create a member with the account email and link it")
+    void activateMembership_success() {
+        User user = new User("alice", "Alice@Example.com", "$2a$10$...");
+        Member member = new Member("Alice Smith", "alice@example.com", null);
+        MemberResponse response = new MemberResponse(1L, "Alice Smith", "alice@example.com", null, null, null);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(memberRepository.existsByEmailIgnoreCaseAndDeletedAtIsNull("alice@example.com")).thenReturn(false);
+        when(memberRepository.save(any(Member.class))).thenReturn(member);
+        when(memberMapper.toResponse(member)).thenReturn(response);
+
+        MemberResponse result = memberService.activateMembership(1L, new ActivateMembershipRequest(" Alice Smith ", " "));
+
+        assertThat(result.email()).isEqualTo("alice@example.com");
+        assertThat(user.getMember()).isSameAs(member);
+        verify(memberRepository).save(org.mockito.ArgumentMatchers.argThat(m ->
+                m.getFullName().equals("Alice Smith") && m.getEmail().equals("alice@example.com") && m.getPhone() == null));
+    }
+
+    @Test
+    @DisplayName("activateMembership should reject an account that already has a card")
+    void activateMembership_alreadyLinked_throwsConflict() {
+        User user = new User("alice", "alice@example.com", "$2a$10$...");
+        user.setMember(new Member("Alice Smith", "alice@example.com", null));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+        assertThatThrownBy(() -> memberService.activateMembership(1L, new ActivateMembershipRequest("Alice", null)))
+                .isInstanceOf(ConflictException.class)
+                .hasMessageContaining("already has a library card");
+    }
+
+    @Test
+    @DisplayName("activateMembership should not claim an existing card that uses the same email")
+    void activateMembership_emailTakenByAnotherCard_throwsConflict() {
+        User user = new User("alice", "alice@example.com", "$2a$10$...");
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(memberRepository.existsByEmailIgnoreCaseAndDeletedAtIsNull("alice@example.com")).thenReturn(true);
+
+        assertThatThrownBy(() -> memberService.activateMembership(1L, new ActivateMembershipRequest("Alice", null)))
+                .isInstanceOf(ConflictException.class)
+                .hasMessageContaining("Ask library staff");
+        org.mockito.Mockito.verify(memberRepository, org.mockito.Mockito.never()).save(any(Member.class));
     }
 }

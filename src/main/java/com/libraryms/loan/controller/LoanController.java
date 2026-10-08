@@ -9,6 +9,7 @@ import java.net.URI;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -66,14 +67,14 @@ public class LoanController {
             @RequestParam(required = false) Long memberId,
             @RequestParam(required = false) Long copyId,
             @RequestParam(required = false) LoanStatusFilter status,
-            @PageableDefault(size = 20) Pageable pageable) {
+            @PageableDefault(size = 20, sort = "borrowedAt", direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(loanService.listLoans(memberId, copyId, status, pageable));
     }
 
     @GetMapping("/me")
     public ResponseEntity<Page<LoanResponse>> listMyLoans(
             @AuthenticationPrincipal CurrentUserPrincipal principal,
-            @PageableDefault(size = 20) Pageable pageable) {
+            @PageableDefault(size = 20, sort = "borrowedAt", direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(loanService.listMyLoans(principal.memberId(), pageable));
     }
 

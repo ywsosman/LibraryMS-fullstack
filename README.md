@@ -174,6 +174,11 @@ com.libraryms
 5. Explore the interactive API documentation at:
    - **Swagger UI**: [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
    - **OpenAPI JSON**: [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
+6. Optional: load sample data for local development (32 books, copies, members, reader accounts and loans). Run it once the API has started, so Flyway has created the tables. It does nothing if books already exist.
+   ```bash
+   docker exec -i libraryms-db-1 sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1' < db/seed/dev-seed.sql
+   ```
+   The sample reader logins are listed at the top of [`db/seed/dev-seed.sql`](db/seed/dev-seed.sql).
 
 ---
 
@@ -271,6 +276,7 @@ All endpoints are prefixed with `/api/v1` unless noted otherwise.
 |---|---|---|---|
 | `GET` | `/members` | `ROLE_ADMIN` | Paginated members list (filterable by name, email) |
 | `GET` | `/members/me` | Authenticated | Retrieve current user's linked member record |
+| `POST` | `/members/me` | Authenticated | Self-service card activation: creates a member with the account's email and links it (409 if already linked, or if a card with that email exists) |
 | `GET` | `/members/{id}` | `ROLE_ADMIN` or Self | Retrieve member profile |
 | `POST` | `/members` | `ROLE_ADMIN` | Create member profile |
 | `PUT` | `/members/{id}` | `ROLE_ADMIN` or Self | Update member profile |

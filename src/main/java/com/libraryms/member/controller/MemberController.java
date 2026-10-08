@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.libraryms.common.security.CurrentUserPrincipal;
+import com.libraryms.member.dto.ActivateMembershipRequest;
 import com.libraryms.member.dto.CreateMemberRequest;
 import com.libraryms.member.dto.MemberResponse;
 import com.libraryms.member.dto.UpdateMemberRequest;
@@ -58,13 +59,26 @@ public class MemberController {
     public ResponseEntity<Page<MemberResponse>> listMembers(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String email,
-            @PageableDefault(size = 20) Pageable pageable) {
+            @PageableDefault(size = 20, sort = "fullName") Pageable pageable) {
         return ResponseEntity.ok(memberService.listMembers(name, email, pageable));
     }
 
     @GetMapping("/me")
     public ResponseEntity<MemberResponse> getMyMemberProfile(@AuthenticationPrincipal CurrentUserPrincipal principal) {
         return ResponseEntity.ok(memberService.getMemberByUserId(principal.id()));
+    }
+
+    /** Any signed-in user can activate a library card for their own account. */
+    @PostMapping("/me")
+    public ResponseEntity<MemberResponse> activateMyMembership(
+            @AuthenticationPrincipal CurrentUserPrincipal principal,
+            @Valid @RequestBody ActivateMembershipRequest request) {
+        MemberResponse created = memberService.activateMembership(principal.id(), request);
+        URI location = ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/api/v1/members/{id}")
+                .buildAndExpand(created.id())
+                .toUri();
+        return ResponseEntity.created(location).body(created);
     }
 
     @GetMapping("/{id}")

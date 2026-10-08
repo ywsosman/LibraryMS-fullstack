@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.libraryms.common.error.ConflictException;
 import com.libraryms.common.error.ResourceNotFoundException;
 import com.libraryms.loan.repository.LoanRepository;
+import com.libraryms.member.dto.ActivateMembershipRequest;
 import com.libraryms.member.dto.CreateMemberRequest;
 import com.libraryms.member.dto.MemberResponse;
 import com.libraryms.member.dto.UpdateMemberRequest;
@@ -52,6 +53,34 @@ public class MemberService {
         String phone = request.phone() == null || request.phone().isBlank() ? null : request.phone().trim();
         Member member = new Member(request.fullName().trim(), email, phone);
         Member saved = memberRepository.save(member);
+        return memberMapper.toResponse(saved);
+    }
+
+    /**
+     * Creates a member for the signed-in user and links it to their account.
+     * An existing card with the same email is never claimed here: registration does not
+     * verify email ownership, so linking it would hand over someone else's loan history.
+     * Staff link such cards through the admin endpoint instead.
+     */
+    @Transactional
+    @com.libraryms.audit.aspect.Audited(entityType = "MEMBER", operation = "CREATE")
+    public MemberResponse activateMembership(Long userId, ActivateMembershipRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", userId));
+
+        if (user.getMember() != null && !user.getMember().isDeleted()) {
+            throw new ConflictException("Your account already has a library card");
+        }
+
+        String email = user.getEmail().trim().toLowerCase();
+        if (memberRepository.existsByEmailIgnoreCaseAndDeletedAtIsNull(email)) {
+            throw new ConflictException(
+                    "A library card already exists for " + email + ". Ask library staff to link it to your account");
+        }
+
+        String phone = request.phone() == null || request.phone().isBlank() ? null : request.phone().trim();
+        Member saved = memberRepository.save(new Member(request.fullName().trim(), email, phone));
+        user.setMember(saved);
         return memberMapper.toResponse(saved);
     }
 

@@ -68,7 +68,7 @@ public class UserController {
     public ResponseEntity<Page<UserResponse>> listUsers(
             @RequestParam(required = false) String username,
             @RequestParam(required = false) String email,
-            @PageableDefault(size = 20) Pageable pageable) {
+            @PageableDefault(size = 20, sort = "username") Pageable pageable) {
         return ResponseEntity.ok(userService.listUsers(username, email, pageable));
     }
 

@@ -23,6 +23,8 @@ logs/
 .factorypath
 .apt_generated/
 .sts4-cache/
+.agents/
+.claude/
 nbproject/
 bin/
 out/
