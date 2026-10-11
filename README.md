@@ -1,12 +1,13 @@
-# Library Management System (LibraryMS) REST API
+# Library Management System (LibraryMS)
 
-A production-grade, enterprise-ready Library Management System REST API built from scratch with Spring Boot 3.5, Java 21, and PostgreSQL 17.
+A production-grade, enterprise-ready fullstack Library Management System built with a Spring Boot 3.5, Java 21, and PostgreSQL 17 backend and a modern Next.js 16, React 19, and Tailwind CSS v4 frontend.
 
 ---
 
 ## 🌟 Highlights & Architecture
 
-- **Strict Layered Separation**: `Controller -> Service -> Repository`. Controllers never touch repositories or domain entities directly.
+- **Decoupled Fullstack Architecture**: Built as an enterprise-grade solution featuring a robust Spring Boot 3.5 REST API backend paired with a high-performance Next.js 16 (App Router) web application.
+- **Strict Layered Backend Separation**: `Controller -> Service -> Repository`. Controllers never touch repositories or domain entities directly.
 - **Cycle-Free DTOs**: Zero entity leakage; responses use immutable Java records and nested summary projections (`AuthorSummary`, `BookSummary`, `MemberSummary`, `CopySummary`) to prevent Jackson circular reference loops.
 - **Standards-Based Security**: Spring Security OAuth2 Resource Server with signed HS256 JWT access tokens and secure, opaque, hashed refresh tokens. Passwords always validated by database-level regex and encoded with BCrypt.
 - **Fail-Fast Configuration**: Validates critical secrets (e.g., `JWT_SECRET` >= 256 bits) at startup before accepting traffic.
@@ -15,11 +16,13 @@ A production-grade, enterprise-ready Library Management System REST API built fr
 - **Soft Deletion & Historical Integrity**: Patron members are soft deleted (`deleted_at`), ensuring loan history is preserved forever while disallowing deletion if open loans exist.
 - **Declarative Auditing**: Aspect-oriented auditing via `@Audited` executed inside the active transaction, with autonomous `REQUIRES_NEW` auditing for security events like login failures.
 - **Comprehensive Quality Assurance**: Enforced JaCoCo line coverage >= 80% on all `*Service` classes, alongside a complete 14-test regression test suite running against real PostgreSQL containers via Testcontainers.
+- **Interactive Web Portals**: Public catalog browsing with real-time copy availability, patron self-service dashboard (`/me`) with digital card activation and fine tracking, and an extensive administrative portal (`/admin`).
 
 ---
 
 ## 🛠 Tech Stack
 
+### ☕ Backend REST API
 | Component | Technology | Version |
 |-----------|------------|---------|
 | Runtime | OpenJDK | 21 LTS |
@@ -33,11 +36,39 @@ A production-grade, enterprise-ready Library Management System REST API built fr
 | Build Tool | Maven Wrapper (`mvnw` / `mvnw.cmd`) | Maven 3.9+ |
 | Containerization | Multi-stage Dockerfile (Alpine JRE, Non-root user) | Docker / Compose |
 
+### ⚛️ Frontend Web Application
+| Component | Technology | Version |
+|-----------|------------|---------|
+| Framework | Next.js (App Router, Turbopack) | 16.4.x |
+| UI Runtime | React & React DOM | 19.3.x |
+| Styling | Tailwind CSS (Turbopack engine) | 4.x |
+| Animations | GSAP & `@gsap/react` | 3.15.x |
+| Server State | TanStack React Query | 5.x |
+| Icons | Phosphor Icons (`@phosphor-icons/react`) | 2.1.x |
+| Language | TypeScript | 5.x |
+| Package Manager | npm | 10+ |
+
 ---
 
-## 📂 Architecture & Package Organization
+## 📂 Architecture & Project Structure
 
-The project is structured according to a **Feature-Driven Architecture with Dedicated Subpackages**. Each feature module is self-contained and subdivided into explicit technical layers to enforce strict single-responsibility principles:
+### Repository Structure
+```text
+LibraryMS fullstack/
+├── frontend/               # Next.js 16 Web Application (React 19, Tailwind CSS v4)
+│   ├── src/app/            # App Router pages ((site) catalog & patron portal, admin console)
+│   ├── src/components/     # Reusable UI component library (Button, Modal, BookCover, etc.)
+│   ├── src/lib/            # REST API client, query client, TypeScript definitions
+│   └── package.json        # Frontend dependencies and npm scripts
+├── src/                    # Spring Boot 3.5 Java backend source code
+├── db/                     # Flyway migrations and development seed scripts
+├── docker-compose.yml      # Docker orchestration for PostgreSQL 17 & API
+├── pom.xml                 # Maven configuration for backend build & tests
+└── .env.example            # Environment template for backend services
+```
+
+### Backend Package Organization (`com.libraryms`)
+The backend is structured according to a **Feature-Driven Architecture with Dedicated Subpackages**. Each feature module is self-contained and subdivided into explicit technical layers to enforce strict single-responsibility principles:
 
 ```text
 com.libraryms
@@ -137,6 +168,8 @@ com.libraryms
 
 ## ⚙️ Environment Variables Reference
 
+### ☕ Backend Configuration (`.env`)
+
 | Variable | Default | Required in Production | Description |
 |---|---|---|---|
 | `SERVER_PORT` | `8080` | No | HTTP port for the API server |
@@ -154,31 +187,141 @@ com.libraryms
 | `LOAN_FINE_PER_DAY` | `0.50` | No | Fine amount accrued per overdue day |
 | `LOAN_MAX_OPEN_LOANS` | `5` | No | Maximum open active loans per member |
 
+### ⚛️ Frontend Configuration (`frontend/.env.local`)
+
+| Variable | Default | Required in Production | Description |
+|---|---|---|---|
+| `NEXT_PUBLIC_API_URL` | `http://localhost:8080` | No | Base URL of the Spring Boot REST API |
+
 ---
 
-## 🚀 Quick Start with Docker
+## 🚀 Quick Start Guide
 
-1. Copy the sample environment file:
+### Option A: Run Fullstack Stack with Docker Compose (Recommended)
+
+Spins up the **Database**, **Spring Boot REST API**, and **Next.js Frontend** in coordinated containers with one command:
+
+1. Copy the sample environment file in the project root:
    ```bash
    cp .env.example .env
    ```
-2. Populate `.env` with a secure database password and a 32+ character `JWT_SECRET`.
-3. Launch the full application stack (Spring Boot API + PostgreSQL 17):
+2. Populate `.env` with a secure database password and a 32+ character `JWT_SECRET` (generate with `openssl rand -base64 48`).
+3. Launch all services (`db`, `app`, and `frontend`):
    ```bash
    docker compose up --build -d
    ```
-4. Verify system health:
+4. Verify backend health:
    ```bash
    curl http://localhost:8080/actuator/health
    ```
-5. Explore the interactive API documentation at:
-   - **Swagger UI**: [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
-   - **OpenAPI JSON**: [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
-6. Optional: load sample data for local development (32 books, copies, members, reader accounts and loans). Run it once the API has started, so Flyway has created the tables. It does nothing if books already exist.
+5. *(Recommended)* Load sample seed data for local development (32 books, copies, members, reader accounts, and loans):
    ```bash
    docker exec -i libraryms-db-1 sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1' < db/seed/dev-seed.sql
    ```
-   The sample reader logins are listed at the top of [`db/seed/dev-seed.sql`](db/seed/dev-seed.sql).
+   > **Sample reader logins**: `amara`, `omar`, or `lina` with password `reading-room-2026`.
+   > **Admin login**: Configured from `ADMIN_USERNAME` / `ADMIN_PASSWORD` in `.env`.
+
+---
+
+### Option B: Run Backend in Docker & Frontend Locally (Fast UI Development)
+
+If you are modifying frontend UI and want instant Hot Module Replacement (HMR):
+
+1. Start backend and database:
+   ```bash
+   docker compose up -d db app
+   ```
+2. Navigate to the `frontend/` directory and run Next.js:
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+
+---
+
+### Access the Applications
+
+| Application / Service | URL | Description |
+|---|---|---|
+| **Frontend Web App** | [http://localhost:3000](http://localhost:3000) | Fullstack Next.js UI (Patron Portal & Admin Console) |
+| **Backend REST API** | [http://localhost:8080](http://localhost:8080) | Spring Boot REST API root |
+| **Swagger UI** | [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html) | Interactive API exploration & testing |
+| **OpenAPI Docs (JSON)** | [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs) | OpenAPI 3.0 specification |
+| **Health Check** | [http://localhost:8080/actuator/health](http://localhost:8080/actuator/health) | Spring Actuator health monitoring |
+
+---
+
+### 👥 Pre-Seeded Test Accounts & Logins
+
+When the sample dataset is loaded via `db/seed/dev-seed.sql`:
+
+| Role | Username | Password | Notes & Testing Scenario |
+|---|---|---|---|
+| **Patron / Member** | `amara` | `reading-room-2026` | Has active open loans, overdue books with calculated fines, and linked member profile |
+| **Patron / Member** | `omar` | `reading-room-2026` | Standard active borrower account |
+| **Patron / Member** | `lina` | `reading-room-2026` | Clean borrower with loan history |
+| **Admin / Librarian** | `${ADMIN_USERNAME}` | `${ADMIN_PASSWORD}` | Configured via `.env` (full admin access to `/admin/*`) |
+
+---
+
+### 🗄️ Database Access & GUI Client Setup (DBeaver, TablePlus, pgAdmin)
+
+To connect your favorite database GUI client to the PostgreSQL 17 container:
+
+| Setting | Value |
+|---|---|
+| **Host** | `localhost` or `127.0.0.1` |
+| **Port** | `5432` |
+| **Database** | **`libraryms`** *(⚠️ Make sure to select `libraryms`, NOT `postgres`)* |
+| **Username** | `libraryms` (or value of `DB_USERNAME` in `.env`) |
+| **Password** | Value of `DB_PASSWORD` in `.env` |
+
+> [!IMPORTANT]
+> **Why does the database look empty with 0 tables?**
+> Most PostgreSQL GUI tools (DBeaver, TablePlus, pgAdmin, DataGrip) connect to the default maintenance database named **`postgres`** by default.
+> The maintenance database `postgres` has 0 application tables.
+> **To see your tables**: Select/switch the active database to **`libraryms`**. Under `libraryms` ➔ `public` ➔ `Tables`, you will find all 13 tables (`books`, `authors`, `book_copies`, `loans`, `members`, etc.) and seed records.
+
+**Direct CLI Verification**:
+```bash
+docker exec -it libraryms-db-1 psql -U libraryms -d libraryms -c "SELECT 'books' as tbl, count(*) FROM books UNION ALL SELECT 'authors', count(*) FROM authors UNION ALL SELECT 'loans', count(*) FROM loans;"
+```
+
+---
+
+## 💻 Frontend Development & Architecture
+
+The frontend application (`frontend/`) is built with Next.js 16 (App Router), React 19, Tailwind CSS v4, TanStack React Query, and GSAP.
+
+### Available Frontend Scripts
+
+Run these commands from inside the `frontend/` directory:
+
+| Command | Action |
+|---|---|
+| `npm run dev` | Starts the Next.js development server with hot-reloading on port 3000 |
+| `npm run build` | Compiles and optimizes the application for production |
+| `npm run start` | Starts the production server using the built assets |
+| `npm run lint` | Runs ESLint to verify code quality and adherence to style rules |
+
+### Frontend Portals & Routes
+
+- **Public & Patron Portal (`frontend/src/app/(site)/`)**:
+  - `/`: Landing page showcasing library metrics, featured catalog titles, and member benefits.
+  - `/catalog`: Searchable catalog with real-time filters (genre, author) and physical copy availability.
+  - `/books/[id]`: Book details, author biographies, ISBN metadata, and copy status list.
+  - `/login` & `/register`: Patron authentication with automatic JWT access and refresh token management.
+  - `/me`: Patron dashboard for digital library card activation, viewing active loans, tracking due dates and overdue fines, and browsing loan history.
+- **Admin Management Console (`frontend/src/app/admin/`)**:
+  - `/admin`: Overview dashboard displaying circulation KPIs and system shortcuts.
+  - `/admin/books`: Create, edit, and manage catalog book entries.
+  - `/admin/copies`: Physical copy inventory tracker (barcode lookup and status toggles: `AVAILABLE`, `ON_LOAN`, `LOST`).
+  - `/admin/authors`: Author directory management.
+  - `/admin/members`: Patron directory, library card status inspection, and safe deletion controls.
+  - `/admin/loans`: Circulation desk to issue loans, process book returns, and settle overdue fines.
+  - `/admin/audit`: Searchable audit log inspector recording security and entity operations.
+  - `/admin/users`: User management and role administration (`ROLE_USER`, `ROLE_ADMIN`).
 
 ---
 
@@ -295,3 +438,42 @@ All endpoints are prefixed with `/api/v1` unless noted otherwise.
 | Method | Endpoint | Access | Description |
 |---|---|---|---|
 | `GET` | `/audit-logs` | `ROLE_ADMIN` | Paginated audit trail (filterable by entity, operation, user, date range) |
+
+---
+
+## ❓ Troubleshooting & Common Pitfalls
+
+### 1. `npm error enoent Could not read package.json`
+- **Cause**: Running `npm run dev` or `npm install` from the repository root instead of the frontend workspace.
+- **Solution**: The Next.js frontend application is located in `frontend/`. Navigate to it first:
+  ```bash
+  cd frontend
+  npm run dev
+  ```
+
+### 2. Database shows 0 tables in DBeaver / pgAdmin / TablePlus
+- **Cause**: Most PostgreSQL client tools connect to the default maintenance database named `postgres` instead of `libraryms`.
+- **Solution**: In your database tool's connection settings or database dropdown, switch the active database from `postgres` to **`libraryms`**. All 13 tables are located under schema `public`.
+
+### 3. API endpoints return `401 Unauthorized` in Swagger UI
+- **Cause**: Protected endpoints require a signed JWT Bearer access token.
+- **Solution**:
+  1. Open [Swagger UI](http://localhost:8080/swagger-ui/index.html).
+  2. Execute `POST /api/v1/auth/login` with reader account `amara` / `reading-room-2026` (or your bootstrap admin credentials).
+  3. Copy the returned `accessToken`.
+  4. Click the green **Authorize** button at the top right of the Swagger UI page, type `Bearer <your_token>`, and click **Authorize**.
+
+### 4. `docker compose: RUN npm ci failed` with package mismatch
+- **Cause**: Local `package.json` and `package-lock.json` are out of sync.
+- **Solution**: Run `npm install` inside the `frontend/` folder to update the lockfile, then re-run:
+  ```bash
+  docker compose up --build -d
+  ```
+
+### 5. Overdue loan dates reset or changed
+- **Cause**: Seed loan dates are generated dynamically relative to `now()` so test overdue loans remain overdue.
+- **Solution**: To reload the clean initial seed state at any time:
+  ```bash
+  docker exec -i libraryms-db-1 sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1' < db/seed/dev-seed.sql
+  ```
+
