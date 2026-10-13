@@ -100,34 +100,6 @@ com.libraryms
 
 ---
 
-## ⚙️ Environment Variables Reference
-
-### ☕ Backend Configuration (`.env`)
-
-| Variable | Default | Required in Production | Description |
-|---|---|---|---|
-| `SERVER_PORT` | `8080` | No | HTTP port for the API server |
-| `DB_URL` | `jdbc:postgresql://localhost:5432/libraryms` | Yes | JDBC connection string |
-| `DB_USERNAME` | *(empty)* | Yes | PostgreSQL username |
-| `DB_PASSWORD` | *(empty)* | Yes | PostgreSQL password |
-| `JWT_SECRET` | *(empty)* | **Yes (min 32 bytes)** | HMAC-SHA256 secret key for signing JWTs |
-| `JWT_ACCESS_EXPIRATION` | `900` | No | Access token lifespan in seconds (15 min) |
-| `JWT_REFRESH_EXPIRATION` | `604800` | No | Refresh token lifespan in seconds (7 days) |
-| `ADMIN_USERNAME` | *(empty)* | No | Optional initial admin username for bootstrap |
-| `ADMIN_EMAIL` | *(empty)* | No | Optional initial admin email for bootstrap |
-| `ADMIN_PASSWORD` | *(empty)* | No | Optional initial admin password for bootstrap |
-| `CORS_ALLOWED_ORIGINS` | `http://localhost:3000` | No | Comma-separated list of allowed CORS origins |
-| `LOAN_DURATION_DAYS` | `14` | No | Standard borrow duration in days |
-| `LOAN_FINE_PER_DAY` | `0.50` | No | Fine amount accrued per overdue day |
-| `LOAN_MAX_OPEN_LOANS` | `5` | No | Maximum open active loans per member |
-
-### ⚛️ Frontend Configuration (`frontend/.env.local`)
-
-| Variable | Default | Required in Production | Description |
-|---|---|---|---|
-| `NEXT_PUBLIC_API_URL` | `http://localhost:8080` | No | Base URL of the Spring Boot REST API |
-
----
 
 ## 🚀 Quick Start Guide
 
@@ -188,16 +160,7 @@ If you are modifying frontend UI and want instant Hot Module Replacement (HMR):
 
 ### 👥 Pre-Seeded Test Accounts & Logins
 
-When the sample dataset is loaded via `db/seed/dev-seed.sql`:
 
-| Role | Username | Password | Notes & Testing Scenario |
-|---|---|---|---|
-| **Patron / Member** | `amara` | `reading-room-2026` | Has active open loans, overdue books with calculated fines, and linked member profile |
-| **Patron / Member** | `omar` | `reading-room-2026` | Standard active borrower account |
-| **Patron / Member** | `lina` | `reading-room-2026` | Clean borrower with loan history |
-| **Admin / Librarian** | `${ADMIN_USERNAME}` | `${ADMIN_PASSWORD}` | Configured via `.env` (full admin access to `/admin/*`) |
-
----
 
 ### 🗄️ Database Access & GUI Client Setup (DBeaver, TablePlus, pgAdmin)
 
@@ -211,16 +174,6 @@ To connect your favorite database GUI client to the PostgreSQL 17 container:
 | **Username** | `libraryms` (or value of `DB_USERNAME` in `.env`) |
 | **Password** | Value of `DB_PASSWORD` in `.env` |
 
-> [!IMPORTANT]
-> **Why does the database look empty with 0 tables?**
-> Most PostgreSQL GUI tools (DBeaver, TablePlus, pgAdmin, DataGrip) connect to the default maintenance database named **`postgres`** by default.
-> The maintenance database `postgres` has 0 application tables.
-> **To see your tables**: Select/switch the active database to **`libraryms`**. Under `libraryms` ➔ `public` ➔ `Tables`, you will find all 13 tables (`books`, `authors`, `book_copies`, `loans`, `members`, etc.) and seed records.
-
-**Direct CLI Verification**:
-```bash
-docker exec -it libraryms-db-1 psql -U libraryms -d libraryms -c "SELECT 'books' as tbl, count(*) FROM books UNION ALL SELECT 'authors', count(*) FROM authors UNION ALL SELECT 'loans', count(*) FROM loans;"
-```
 
 ---
 
@@ -275,28 +228,7 @@ Coverage report is generated at: `target/site/jacoco/index.html`.
 
 ---
 
-## 🛡️ Mandatory Regression Tests Suite
 
-The codebase includes dedicated regression tests located in `src/test/java/com/libraryms/regression/`:
-
-| Test Class | Focus / Invariant Tested |
-|---|---|
-| `Regression01SelfPasswordChangeIT` | Password change stores valid BCrypt hash; old password revoked immediately |
-| `Regression02MemberDeleteIT` | Soft deleting member preserves books/copies; member with active open loans yields 409 |
-| `Regression03SelfDeleteIT` | Self delete revokes active refresh tokens and terminates session |
-| `Regression04UsernameEmailUpdateIT` | Updating username/email keeps active session valid; duplicate yields 409 |
-| `Regression05DatabaseConstraintIT` | Database-level SQL constraints reject non-BCrypt hashes, invalid emails, and bad dates |
-| `Regression06UserAuditSurvivalIT` | Deleting a user retains historical audit log rows (`user_id` set to NULL, snapshot intact) |
-| `Regression07BookJsonCycleIT` | Book serialization with borrowed copy contains no cycles and zero entity/proxy leakage |
-| `Regression08SecurityErrorBodyIT` | Unauthenticated requests receive RFC-standard structured JSON error response |
-| `Regression09ErrorStatusMappingIT` | Exact HTTP status code mapping (400, 404, 409) across exception hierarchy |
-| `Regression10GenericBadCredentialsIT` | Bad login attempts return uniform error message to prevent username enumeration |
-| `Regression11InvalidRequestBodyIT` | Validation errors return 400 Bad Request with field-level details |
-| `Regression12ConcurrentBorrowIT` | Simultaneous borrow of the same copy via CountDownLatch produces exactly one 201 and one 409 |
-| `Regression13StartupFailFastIT` | App fails fast on missing/short JWT secret; zero default admin accounts without env config |
-| `Regression14LoginRateLimitIT` | Repeated failed login attempts trigger account lockout and return 429 Too Many Requests |
-
----
 
 ## 📖 REST API Endpoints Overview
 
@@ -375,39 +307,4 @@ All endpoints are prefixed with `/api/v1` unless noted otherwise.
 
 ---
 
-## ❓ Troubleshooting & Common Pitfalls
-
-### 1. `npm error enoent Could not read package.json`
-- **Cause**: Running `npm run dev` or `npm install` from the repository root instead of the frontend workspace.
-- **Solution**: The Next.js frontend application is located in `frontend/`. Navigate to it first:
-  ```bash
-  cd frontend
-  npm run dev
-  ```
-
-### 2. Database shows 0 tables in DBeaver / pgAdmin / TablePlus
-- **Cause**: Most PostgreSQL client tools connect to the default maintenance database named `postgres` instead of `libraryms`.
-- **Solution**: In your database tool's connection settings or database dropdown, switch the active database from `postgres` to **`libraryms`**. All 13 tables are located under schema `public`.
-
-### 3. API endpoints return `401 Unauthorized` in Swagger UI
-- **Cause**: Protected endpoints require a signed JWT Bearer access token.
-- **Solution**:
-  1. Open [Swagger UI](http://localhost:8080/swagger-ui/index.html).
-  2. Execute `POST /api/v1/auth/login` with reader account `amara` / `reading-room-2026` (or your bootstrap admin credentials).
-  3. Copy the returned `accessToken`.
-  4. Click the green **Authorize** button at the top right of the Swagger UI page, type `Bearer <your_token>`, and click **Authorize**.
-
-### 4. `docker compose: RUN npm ci failed` with package mismatch
-- **Cause**: Local `package.json` and `package-lock.json` are out of sync.
-- **Solution**: Run `npm install` inside the `frontend/` folder to update the lockfile, then re-run:
-  ```bash
-  docker compose up --build -d
-  ```
-
-### 5. Overdue loan dates reset or changed
-- **Cause**: Seed loan dates are generated dynamically relative to `now()` so test overdue loans remain overdue.
-- **Solution**: To reload the clean initial seed state at any time:
-  ```bash
-  docker exec -i libraryms-db-1 sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1' < db/seed/dev-seed.sql
-  ```
 
