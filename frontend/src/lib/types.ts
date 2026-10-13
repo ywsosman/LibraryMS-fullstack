@@ -37,14 +37,14 @@ export interface AuthorResponse {
 
 export interface CreateAuthorRequest {
   name: string;
-  bio?: string;
-  birthDate?: string;
+  bio?: string | null;
+  birthDate?: string | null;
 }
 
 export interface UpdateAuthorRequest {
   name: string;
-  bio?: string;
-  birthDate?: string;
+  bio?: string | null;
+  birthDate?: string | null;
 }
 
 export interface BookResponse {
@@ -132,6 +132,7 @@ export interface LoanResponse {
   dueDate: string;
   returnedAt?: string | null;
   fineAmount: number;
+  fineSettledAt?: string | null;
   open: boolean;
   overdue: boolean;
 }

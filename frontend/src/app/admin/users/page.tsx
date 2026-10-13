@@ -7,21 +7,29 @@ import { UserResponse } from '@/lib/types';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
+import { Pagination } from '@/components/admin/Pagination';
+import { useAuth } from '@/lib/auth-context';
 import {
   Link as LinkIcon,
   LinkBreak,
   PencilSimple,
+  ShieldCheck,
   Trash,
   WarningCircle,
 } from '@phosphor-icons/react';
 
 export default function AdminUsersPage() {
   const queryClient = useQueryClient();
-  const page = 0;
+  const { user: currentUser } = useAuth();
+  const [page, setPage] = useState(0);
 
   // Link member modal
   const [linkingUser, setLinkingUser] = useState<UserResponse | null>(null);
   const [selectedMemberId, setSelectedMemberId] = useState<number | undefined>();
+
+  // Role management modal
+  const [roleTargetUser, setRoleTargetUser] = useState<UserResponse | null>(null);
+  const [roleAction, setRoleAction] = useState<'promote' | 'demote' | null>(null);
 
   // Edit user modal
   const [editingUser, setEditingUser] = useState<UserResponse | null>(null);
@@ -86,6 +94,32 @@ export default function AdminUsersPage() {
     },
   });
 
+  const promoteMutation = useMutation({
+    mutationFn: (id: number) => usersApi.promoteAdmin(id),
+    onSuccess: () => {
+      setRoleTargetUser(null);
+      setRoleAction(null);
+      setFormError(null);
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+    },
+    onError: (err: { message?: string }) => {
+      setFormError(err.message || 'Failed to upgrade user to staff administrator.');
+    },
+  });
+
+  const demoteMutation = useMutation({
+    mutationFn: (id: number) => usersApi.demoteAdmin(id),
+    onSuccess: () => {
+      setRoleTargetUser(null);
+      setRoleAction(null);
+      setFormError(null);
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+    },
+    onError: (err: { message?: string }) => {
+      setFormError(err.message || 'Failed to revoke administrator privileges.');
+    },
+  });
+
   const users = usersData?.content || [];
 
   return (
@@ -140,13 +174,28 @@ export default function AdminUsersPage() {
                             key={r}
                             className={`px-1.5 py-0.5 rounded-sm text-xs font-medium ${
                               r === 'ROLE_ADMIN'
-                                ? 'bg-accent/10 text-accent'
+                                ? 'bg-accent/10 text-accent font-semibold'
                                 : 'bg-sunken text-muted'
                             }`}
                           >
                             {r === 'ROLE_ADMIN' ? 'Staff' : 'Reader'}
                           </span>
                         ))}
+                        {!u.roles?.includes('ROLE_ADMIN') && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setRoleTargetUser(u);
+                              setRoleAction('promote');
+                              setFormError(null);
+                            }}
+                            title="Upgrade to Staff Admin"
+                            className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs text-accent hover:bg-accent/10 rounded transition-colors cursor-pointer"
+                          >
+                            <ShieldCheck className="w-3.5 h-3.5" />
+                            <span>Make Staff</span>
+                          </button>
+                        )}
                       </div>
                     </td>
                     <td className="py-4 px-5">
@@ -180,6 +229,33 @@ export default function AdminUsersPage() {
                     </td>
                     <td className="py-4 px-5 text-right">
                       <div className="flex items-center justify-end gap-2">
+                        {!u.roles?.includes('ROLE_ADMIN') ? (
+                          <button
+                            title="Upgrade to Staff Admin"
+                            onClick={() => {
+                              setRoleTargetUser(u);
+                              setRoleAction('promote');
+                              setFormError(null);
+                            }}
+                            className="p-1.5 rounded-lg text-muted hover:text-accent hover:bg-sunken transition-colors cursor-pointer"
+                          >
+                            <ShieldCheck className="w-4 h-4" />
+                          </button>
+                        ) : (
+                          currentUser?.id !== u.id && (
+                            <button
+                              title="Revoke Staff Privileges"
+                              onClick={() => {
+                                setRoleTargetUser(u);
+                                setRoleAction('demote');
+                                setFormError(null);
+                              }}
+                              className="p-1.5 rounded-lg text-accent hover:text-danger hover:bg-sunken transition-colors cursor-pointer"
+                            >
+                              <ShieldCheck className="w-4 h-4" />
+                            </button>
+                          )
+                        )}
                         <button
                           title="Edit Profile"
                           onClick={() => {
@@ -210,6 +286,13 @@ export default function AdminUsersPage() {
           <div className="p-12 text-center text-sm text-muted">No user records found.</div>
         )}
       </div>
+
+      <Pagination
+        page={page}
+        totalPages={usersData?.totalPages}
+        totalElements={usersData?.totalElements}
+        onChange={setPage}
+      />
 
       {/* Link Member Modal */}
       <Modal
@@ -353,6 +436,69 @@ export default function AdminUsersPage() {
           >
             Delete
           </Button>
+        </div>
+      </Modal>
+
+      {/* Role Upgrade / Demote Modal */}
+      <Modal
+        isOpen={Boolean(roleTargetUser && roleAction)}
+        onClose={() => {
+          setRoleTargetUser(null);
+          setRoleAction(null);
+          setFormError(null);
+        }}
+        title={roleAction === 'promote' ? 'Upgrade to Staff Admin' : 'Revoke Staff Privileges'}
+        maxWidth="sm"
+      >
+        <div className="space-y-4">
+          {formError && (
+            <div className="p-3 rounded-md bg-danger/10 text-sm text-danger flex items-center gap-2">
+              <WarningCircle className="w-4 h-4 shrink-0" />
+              <span>{formError}</span>
+            </div>
+          )}
+
+          <p className="text-sm text-muted leading-relaxed">
+            {roleAction === 'promote' ? (
+              <>
+                Are you sure you want to upgrade <strong className="text-ink">{roleTargetUser?.username}</strong> to{' '}
+                <strong className="text-accent font-semibold">Staff Administrator</strong>? This will grant them full administrative access to catalog management, loan circulation, and backoffice administration.
+              </>
+            ) : (
+              <>
+                Are you sure you want to revoke staff administrative privileges from <strong className="text-ink">{roleTargetUser?.username}</strong>? They will be demoted to a regular Reader account.
+              </>
+            )}
+          </p>
+
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-rule">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setRoleTargetUser(null);
+                setRoleAction(null);
+                setFormError(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant={roleAction === 'promote' ? 'primary' : 'danger'}
+              size="sm"
+              isLoading={promoteMutation.isPending || demoteMutation.isPending}
+              onClick={() => {
+                if (!roleTargetUser) return;
+                if (roleAction === 'promote') {
+                  promoteMutation.mutate(roleTargetUser.id);
+                } else {
+                  demoteMutation.mutate(roleTargetUser.id);
+                }
+              }}
+            >
+              {roleAction === 'promote' ? 'Upgrade to Admin' : 'Revoke Admin'}
+            </Button>
+          </div>
         </div>
       </Modal>
     </div>

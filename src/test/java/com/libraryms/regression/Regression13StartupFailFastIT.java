@@ -1,6 +1,6 @@
 package com.libraryms.regression;
 
-import com.libraryms.user.entity.User;
+import com.libraryms.model.User;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -9,10 +9,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.libraryms.common.security.JwtProperties;
+import com.libraryms.config.JwtProperties;
 import com.libraryms.support.IntegrationTest;
-import com.libraryms.user.entity.RoleName;
-import com.libraryms.user.repository.UserRepository;
+import com.libraryms.enums.RoleName;
+import com.libraryms.repository.UserRepository;
 
 /**
  * Regression Test 13:

@@ -17,14 +17,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
-import com.libraryms.common.error.ApiErrorResponse;
-import com.libraryms.common.security.JwtTokenService;
+import com.libraryms.exception.ApiErrorResponse;
+import com.libraryms.config.JwtTokenService;
 import com.libraryms.support.IntegrationTest;
-import com.libraryms.user.entity.Role;
-import com.libraryms.user.entity.RoleName;
-import com.libraryms.user.repository.RoleRepository;
-import com.libraryms.user.entity.User;
-import com.libraryms.user.repository.UserRepository;
+import com.libraryms.model.Role;
+import com.libraryms.enums.RoleName;
+import com.libraryms.repository.RoleRepository;
+import com.libraryms.model.User;
+import com.libraryms.repository.UserRepository;
 
 /**
  * Regression Test 11:

@@ -92,6 +92,17 @@ export default function AdminLoansPage() {
     },
   });
 
+  const settleFineMutation = useMutation({
+    mutationFn: (id: number) => loansApi.settleFine(id),
+    onSuccess: (updatedLoan) => {
+      setSuccessMsg(`Fine of $${updatedLoan.fineAmount.toFixed(2)} has been marked as settled.`);
+      queryClient.invalidateQueries({ queryKey: ['admin-loans'] });
+    },
+    onError: (err: { message?: string }) => {
+      alert(err.message || 'Failed to settle fine.');
+    },
+  });
+
   const handleCheckout = (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
@@ -244,33 +255,58 @@ export default function AdminLoansPage() {
                       {new Date(loan.dueDate).toLocaleDateString()}
                     </td>
                     <td className="py-4 px-5">
-                      {loan.open ? (
-                        loan.overdue ? (
-                          <Badge variant="overdue" size="sm">
-                            Overdue · {lateLabel(loan.dueDate)}
-                          </Badge>
+                      <div className="flex flex-col gap-1 items-start">
+                        {loan.open ? (
+                          loan.overdue ? (
+                            <Badge variant="overdue" size="sm">
+                              Overdue · {lateLabel(loan.dueDate)}
+                            </Badge>
+                          ) : (
+                            <Badge variant="on_loan" size="sm">
+                              On loan
+                            </Badge>
+                          )
                         ) : (
-                          <Badge variant="on_loan" size="sm">
-                            On loan
+                          <Badge variant="returned" size="sm">
+                            Returned
                           </Badge>
-                        )
-                      ) : (
-                        <Badge variant="returned" size="sm">
-                          Returned
-                        </Badge>
-                      )}
+                        )}
+                        {loan.fineAmount > 0 && (
+                          loan.fineSettledAt ? (
+                            <span className="text-[11px] font-medium text-success">
+                              Fine settled (${loan.fineAmount.toFixed(2)})
+                            </span>
+                          ) : (
+                            <span className="text-[11px] font-semibold text-danger">
+                              Unpaid fine: ${loan.fineAmount.toFixed(2)}
+                            </span>
+                          )
+                        )}
+                      </div>
                     </td>
                     <td className="py-4 px-5 text-right">
-                      {loan.open && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          icon={<ArrowClockwise className="w-3.5 h-3.5" />}
-                          onClick={() => setReturningLoan(loan)}
-                        >
-                          Check in
-                        </Button>
-                      )}
+                      <div className="flex items-center justify-end gap-2">
+                        {loan.open && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            icon={<ArrowClockwise className="w-3.5 h-3.5" />}
+                            onClick={() => setReturningLoan(loan)}
+                          >
+                            Check in
+                          </Button>
+                        )}
+                        {!loan.open && loan.fineAmount > 0 && !loan.fineSettledAt && (
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            onClick={() => settleFineMutation.mutate(loan.id)}
+                            isLoading={settleFineMutation.isPending && settleFineMutation.variables === loan.id}
+                          >
+                            Settle fine
+                          </Button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}

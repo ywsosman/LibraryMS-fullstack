@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { clothColor, coverUrl } from '@/lib/book-cover';
 
 export interface BookCoverProps {
@@ -26,6 +26,12 @@ export const BookCover: React.FC<BookCoverProps> = ({
   const src = coverUrl(isbn, large ? 'L' : 'M');
   const [failed, setFailed] = useState(false);
   const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    setFailed(false);
+    setLoaded(false);
+  }, [isbn, src]);
+
   const showImage = src && !failed;
 
   return (
@@ -61,7 +67,14 @@ export const BookCover: React.FC<BookCoverProps> = ({
           src={src}
           alt={`Cover of ${title}`}
           loading="lazy"
-          onLoad={() => setLoaded(true)}
+          onLoad={(e) => {
+            const img = e.currentTarget;
+            if (img.naturalWidth <= 1 || img.naturalHeight <= 1) {
+              setFailed(true);
+            } else {
+              setLoaded(true);
+            }
+          }}
           onError={() => setFailed(true)}
           className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${
             loaded ? 'opacity-100' : 'opacity-0'

@@ -1,6 +1,6 @@
 package com.libraryms.regression;
 
-import com.libraryms.user.entity.User;
+import com.libraryms.model.User;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -15,12 +15,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
-import com.libraryms.auth.dto.AuthResponse;
-import com.libraryms.auth.dto.RegisterRequest;
-import com.libraryms.common.error.ApiErrorResponse;
+import com.libraryms.dto.AuthResponse;
+import com.libraryms.dto.RegisterRequest;
+import com.libraryms.exception.ApiErrorResponse;
 import com.libraryms.support.IntegrationTest;
-import com.libraryms.user.dto.UpdateUserRequest;
-import com.libraryms.user.dto.UserResponse;
+import com.libraryms.dto.UpdateUserRequest;
+import com.libraryms.dto.UserResponse;
 
 /**
  * Regression Test 4:

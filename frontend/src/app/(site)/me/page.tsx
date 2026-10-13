@@ -100,7 +100,12 @@ export default function MyLoansPage() {
   const loans = loansData?.content ?? [];
   const openLoans = loans.filter((l) => l.open);
   const pastLoans = loans.filter((l) => !l.open);
-  const totalFines = loans.reduce((acc, l) => acc + (Number(l.fineAmount) || 0), 0);
+  const outstandingFines = loans
+    .filter((l) => !l.fineSettledAt)
+    .reduce((acc, l) => acc + (Number(l.fineAmount) || 0), 0);
+  const settledFines = loans
+    .filter((l) => Boolean(l.fineSettledAt))
+    .reduce((acc, l) => acc + (Number(l.fineAmount) || 0), 0);
 
   return (
     <div className="min-h-[100dvh] flex flex-col">
@@ -196,7 +201,13 @@ export default function MyLoansPage() {
                           </Link>
                           <span className="text-muted shrink-0">
                             {loan.returnedAt ? `Returned ${formatDate(loan.returnedAt)}` : 'Returned'}
-                            {loan.fineAmount > 0 && <span className="text-danger"> · {money(loan.fineAmount)}</span>}
+                            {loan.fineAmount > 0 && (
+                              loan.fineSettledAt ? (
+                                <span className="text-success text-xs font-medium"> · Fine paid ({money(loan.fineAmount)})</span>
+                              ) : (
+                                <span className="text-danger text-xs font-medium"> · Fine {money(loan.fineAmount)}</span>
+                              )
+                            )}
                           </span>
                         </li>
                       ))}
@@ -231,12 +242,17 @@ export default function MyLoansPage() {
                       <dd className="text-ink">{member.phone}</dd>
                     </div>
                   )}
-                  {totalFines > 0 && (
+                  {outstandingFines > 0 ? (
                     <div className="flex justify-between gap-4 pt-3 border-t border-rule">
-                      <dt className="text-danger">Fines</dt>
-                      <dd className="text-danger font-medium">{money(totalFines)}</dd>
+                      <dt className="text-danger">Unpaid fines</dt>
+                      <dd className="text-danger font-medium">{money(outstandingFines)}</dd>
                     </div>
-                  )}
+                  ) : settledFines > 0 ? (
+                    <div className="flex justify-between gap-4 pt-3 border-t border-rule">
+                      <dt className="text-muted">Fines status</dt>
+                      <dd className="text-success font-medium">All settled</dd>
+                    </div>
+                  ) : null}
                 </dl>
               ) : (
                 <form
@@ -307,6 +323,32 @@ export default function MyLoansPage() {
                   Change password
                 </Button>
               </form>
+            </section>
+
+            <section className="pt-6 border-t border-rule">
+              <h2 className="font-serif text-2xl text-ink">Account</h2>
+              <p className="mt-2 text-sm text-muted">
+                Permanently close your account. All open loans must be returned before your account can be deleted.
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="mt-4 text-danger border-danger/30 hover:bg-danger/10"
+                onClick={async () => {
+                  if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+                    try {
+                      await usersApi.deleteMe();
+                      window.location.href = '/login';
+                    } catch (err: unknown) {
+                      const msg = err && typeof err === 'object' && 'message' in err ? String(err.message) : 'Cannot delete account. Please return all borrowed books first.';
+                      alert(msg);
+                    }
+                  }
+                }}
+              >
+                Delete my account
+              </Button>
             </section>
           </aside>
         </div>

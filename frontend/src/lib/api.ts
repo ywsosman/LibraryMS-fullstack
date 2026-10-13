@@ -351,6 +351,11 @@ export const loansApi = {
       method: 'POST',
       requiresAuth: true,
     }),
+  settleFine: (id: number) =>
+    apiFetch<LoanResponse>(`/api/v1/loans/${id}/settle-fine`, {
+      method: 'POST',
+      requiresAuth: true,
+    }),
 };
 
 export const usersApi = {
@@ -394,6 +399,16 @@ export const usersApi = {
   unlinkMember: (userId: number) =>
     apiFetch<UserResponse>(`/api/v1/users/${userId}/member`, {
       method: 'DELETE',
+      requiresAuth: true,
+    }),
+  promoteAdmin: (userId: number) =>
+    apiFetch<UserResponse>(`/api/v1/users/${userId}/promote-admin`, {
+      method: 'POST',
+      requiresAuth: true,
+    }),
+  demoteAdmin: (userId: number) =>
+    apiFetch<UserResponse>(`/api/v1/users/${userId}/demote-admin`, {
+      method: 'POST',
       requiresAuth: true,
     }),
 };

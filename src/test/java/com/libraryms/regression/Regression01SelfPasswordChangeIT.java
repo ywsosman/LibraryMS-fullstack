@@ -1,6 +1,6 @@
 package com.libraryms.regression;
 
-import com.libraryms.user.entity.User;
+import com.libraryms.model.User;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -19,11 +19,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.libraryms.auth.dto.AuthResponse;
-import com.libraryms.auth.dto.LoginRequest;
-import com.libraryms.auth.dto.RegisterRequest;
+import com.libraryms.dto.AuthResponse;
+import com.libraryms.dto.LoginRequest;
+import com.libraryms.dto.RegisterRequest;
 import com.libraryms.support.IntegrationTest;
-import com.libraryms.user.dto.ChangePasswordRequest;
+import com.libraryms.dto.ChangePasswordRequest;
 
 /**
  * Regression Test 1:

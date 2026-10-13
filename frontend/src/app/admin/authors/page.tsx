@@ -83,6 +83,10 @@ export default function AdminAuthorsPage() {
       setDeletingId(null);
       queryClient.invalidateQueries({ queryKey: ['admin-authors'] });
     },
+    onError: (err: { message?: string }) => {
+      alert(err.message || 'Failed to delete author.');
+      setDeletingId(null);
+    },
   });
 
   const handleSave = (e: React.FormEvent) => {
@@ -90,9 +94,9 @@ export default function AdminAuthorsPage() {
     setFormError(null);
 
     const payload: CreateAuthorRequest = {
-      name,
-      bio: bio || undefined,
-      birthDate: birthDate || undefined,
+      name: name.trim(),
+      bio: editingAuthor ? (bio ? bio.trim() : null) : (bio.trim() || undefined),
+      birthDate: editingAuthor ? (birthDate || null) : (birthDate || undefined),
     };
 
     if (editingAuthor) {

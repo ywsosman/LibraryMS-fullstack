@@ -1,6 +1,6 @@
 package com.libraryms.regression;
 
-import com.libraryms.loan.entity.Loan;
+import com.libraryms.model.Loan;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -23,25 +23,25 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
-import com.libraryms.author.entity.Author;
-import com.libraryms.author.repository.AuthorRepository;
-import com.libraryms.book.entity.Book;
-import com.libraryms.book.repository.BookRepository;
-import com.libraryms.common.security.JwtTokenService;
-import com.libraryms.copy.entity.BookCopy;
-import com.libraryms.copy.repository.BookCopyRepository;
-import com.libraryms.copy.entity.CopyStatus;
-import com.libraryms.loan.repository.LoanRepository;
-import com.libraryms.loan.dto.CreateLoanRequest;
-import com.libraryms.loan.dto.LoanResponse;
-import com.libraryms.member.entity.Member;
-import com.libraryms.member.repository.MemberRepository;
+import com.libraryms.model.Author;
+import com.libraryms.repository.AuthorRepository;
+import com.libraryms.model.Book;
+import com.libraryms.repository.BookRepository;
+import com.libraryms.config.JwtTokenService;
+import com.libraryms.model.BookCopy;
+import com.libraryms.repository.BookCopyRepository;
+import com.libraryms.enums.CopyStatus;
+import com.libraryms.repository.LoanRepository;
+import com.libraryms.dto.CreateLoanRequest;
+import com.libraryms.dto.LoanResponse;
+import com.libraryms.model.Member;
+import com.libraryms.repository.MemberRepository;
 import com.libraryms.support.IntegrationTest;
-import com.libraryms.user.entity.Role;
-import com.libraryms.user.entity.RoleName;
-import com.libraryms.user.repository.RoleRepository;
-import com.libraryms.user.entity.User;
-import com.libraryms.user.repository.UserRepository;
+import com.libraryms.model.Role;
+import com.libraryms.enums.RoleName;
+import com.libraryms.repository.RoleRepository;
+import com.libraryms.model.User;
+import com.libraryms.repository.UserRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

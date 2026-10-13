@@ -21,8 +21,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
-import com.libraryms.common.error.ApiErrorResponse;
-import com.libraryms.common.security.JwtProperties;
+import com.libraryms.exception.ApiErrorResponse;
+import com.libraryms.config.JwtProperties;
 import com.libraryms.support.IntegrationTest;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
